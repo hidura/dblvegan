@@ -1,0 +1,326 @@
+<?xml version="1.0"?>
+<odoo>
+    <!-- Menus -->
+    <menuitem
+        id="menu_fiscal_root"
+        name="Fiscal Pos"
+        web_icon="point_of_sale,static/description/icon.png"
+        sequence="15"/>
+
+
+    <record id="action_fiscal_pos_registration" model="ir.actions.act_window">
+        <field name="name">FiscalPOS Registration</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">fiscal.pos</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Register your Fiscal Printer server
+          </p><p>
+
+          </p>
+        </field>
+    </record>
+
+
+    <record id="fiscal_pos_conn_form_view" model="ir.ui.view">
+        <field name="name">fiscal.pos.form</field>
+        <field name="model">fiscal.pos</field>
+        <field name="arch" type="xml">
+            <form string="Fiscal printer register form">
+                <div class="field_form">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td><label for="pos_config"/></td>
+                                <td>
+                                    <field name="pos_config" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="server_path"/></td>
+                                <td>
+                                    <field name="server_path" placeholder="Ex: http://&lt;path&gt;:&lt;port&gt;"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="printer_id"/></td>
+                                <td>
+                                    <field name="printer_id" readonly="1"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="printer_serial"/></td>
+                                <td>
+                                    <field name="printer_serial" readonly="1"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="copies"/></td>
+                                <td>
+                                    <field name="copies"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="pos_fiscal_active"/></td>
+                                <td>
+                                    <field name="pos_fiscal_active" />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </form>
+        </field>
+    </record>
+    <record id="fiscal_pos_conn_tree_view" model="ir.ui.view">
+        <field name="name">fiscal.pos.tree</field>
+        <field name="model">fiscal.pos</field>
+        <field name="arch" type="xml">
+            <tree string="Connections" multi_edit="1">
+                <field name="pos_config" string="POS" readonly="1"/>
+                <field name="server_path" string="Path" readonly="1"/>
+                <field name="printer_id" string="Printer ID" readonly="1"/>
+                <field name="printer_serial" string="Serial" readonly="1"/>
+                <field name="pos_fiscal_active" string="Status" readonly="1"/>
+            </tree>
+        </field>
+    </record>
+
+
+
+
+    <menuitem
+        id="oikoschain_register"
+        name="Registro Conexion POS"
+        sequence="1"
+        parent="menu_fiscal_root"
+        action="action_fiscal_pos_registration"/>
+
+
+
+
+    <record id="action_fiscal_month_generation" model="ir.actions.act_window">
+        <field name="name">FiscalPOS Monthly report</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">fiscal.monthly.close.pos</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Start generating the reports of your fiscal printer
+          </p><p>
+
+          </p>
+        </field>
+    </record>
+
+
+    <record id="fiscal_montly_close_form_view" model="ir.ui.view">
+        <field name="name">fiscal.monthly.close.pos.form</field>
+        <field name="model">fiscal.monthly.close.pos</field>
+        <field name="arch" type="xml">
+            <form string="Montly close form">
+                <div class="field_form">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td><label for="month"/></td>
+                                <td>
+                                    <field name="month" placeholder="MM"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="year"/></td>
+                                <td>
+                                    <field name="year" placeholder="YYYY"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="fiscal_pos"/></td>
+                                <td>
+                                    <field name="fiscal_pos"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </form>
+        </field>
+    </record>
+    <record id="fiscal_montly_close_tree_view" model="ir.ui.view">
+        <field name="name">fiscal.monthly.close.pos.tree</field>
+        <field name="model">fiscal.monthly.close.pos</field>
+        <field name="arch" type="xml">
+            <tree string="Monthly reports" multi_edit="1">
+                <field name="month" string="Month" readonly="1"/>
+                <field name="year" string="Year" readonly="1"/>
+                <field name="fiscal_pos" string="Printer ID" readonly="1"/>
+                <field name="create_uid" string="Generated by" readonly="1"/>
+                <field name="create_date" string="Generated date" readonly="1"/>
+            </tree>
+        </field>
+    </record>
+
+
+
+
+    <menuitem
+        id="monthly_pos_report"
+        name="Montly POS Report"
+        sequence="2"
+        parent="menu_fiscal_root"
+        action="action_fiscal_month_generation"/>
+
+
+
+
+
+    <record id="action_route_server_generation" model="ir.actions.act_window">
+        <field name="name">POS Route server</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sync.server</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Add the server route so we can have more info about it
+          </p><p>
+
+          </p>
+        </field>
+    </record>
+
+
+    <record id="sync_server_form_view" model="ir.ui.view">
+        <field name="name">sync.server.form</field>
+        <field name="model">sync.server</field>
+        <field name="arch" type="xml">
+            <form string="Server Route">
+                <div class="field_form">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td><label for="name"/></td>
+                                <td>
+                                    <field name="name"/>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td><label for="route"/></td>
+                                <td>
+                                    <field name="route" placeholder="http://yourhost"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </form>
+        </field>
+    </record>
+    <record id="sync_server_tree_view" model="ir.ui.view">
+        <field name="name">sync.server.tree</field>
+        <field name="model">sync.server</field>
+        <field name="arch" type="xml">
+            <tree string="Route servers" multi_edit="1">
+                <field name="name" string="Name" readonly="1"/>
+                <field name="route" string="Route" readonly="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_product_sync_download" model="ir.actions.act_window">
+        <field name="name">Descargar Productos manualmente</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">product.server.temp</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            There's no product to sync
+          </p><p>
+
+          </p>
+        </field>
+    </record>
+
+
+
+     <record id="product_temp_tree_view" model="ir.ui.view">
+        <field name="name">product.server.temp.tree</field>
+        <field name="model">product.server.temp</field>
+        <field name="arch" type="xml">
+             <tree string="Productos no sincronizados" multi_edit="1">
+                <field name="name" string="Name" readonly="1"/>
+                <field name="barcode" string="Barcode" readonly="1"/>
+                <field name="server_id" string="Server ID" readonly="1"/>
+                <button name="action_sync_manual" string="Sync"
+                        type="object"
+                        class="oe_highlight"/>
+             </tree>
+        </field>
+    </record>
+
+
+    <record id="action_account_move_sync" model="ir.actions.act_window">
+        <field name="name">Sincronizador de facturas</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            There's no product to sync
+          </p><p>
+          </p>
+        </field>
+    </record>
+     <record id="action_account_move_sync_tree_view" model="ir.ui.view">
+        <field name="name">account.move.tree.inherit</field>
+        <field name="model">account.move</field>
+         <field ref="account.view_invoice_tree" name="inherit_id" />
+         <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="after">
+                <field name="server_id" string="Server ID" readonly="1"/>
+                <button name="action_sync_manual_account_move" string="Sync"
+                        type="object"
+                        attrs="{'visible':['&amp;','&amp;',('server_id','=',0),
+                        ('type','=','out_invoice')]}"
+                        class="oe_highlight"/>
+            </xpath>
+        </field>
+    </record>
+    <menuitem
+        id="oikoschain_sync"
+        name="Sincronizador"
+        sequence="1"
+        parent="menu_fiscal_root"/>
+
+    <menuitem
+        id="oikoschain_product_sync"
+        name="Descargar productos"
+        sequence="1"
+        parent="oikoschain_sync"
+        action="action_product_sync_download"/>
+    <menuitem
+        id="oikoschain_account_sync"
+        name="Sincronizador de Facturas"
+        sequence="2"
+        parent="oikoschain_sync"
+        action="action_account_move_sync"/>
+
+
+
+
+    <menuitem
+        id="sync_server_men"
+        name="Route server"
+        sequence="3"
+        parent="menu_fiscal_root"
+        action="action_route_server_generation"/>
+
+
+
+
+
+</odoo>

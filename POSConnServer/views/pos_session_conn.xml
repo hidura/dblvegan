@@ -1,0 +1,58 @@
+<odoo>
+  <data>
+        <record id="pos_session_view_tree_posconn" model="ir.ui.view">
+            <field name="name">pos.session.tree.view.inherit</field>
+            <field name="model">pos.session</field>
+            <field name="priority">5</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_session_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='state']" position="after">
+                    <field name="server_id"/>
+                    <button name="action_sync_manual" string="Sync"
+                            type="object"
+                            attrs="{'invisible':[('server_id','>',0)]}"
+                            class="oe_highlight"/>
+                </xpath>
+            </field>
+        </record>
+        <record id="pos_config_view_form_posconn" model="ir.ui.view">
+        <field name="name">point_of_sale.pos_config_view_form.inherit</field>
+        <field name="model">pos.config</field>
+        <field name="priority">5</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='accounting_section']" position="after">
+                <h2>CONEXION POS FISCAL Y REMOTA</h2>
+                <div class="row mt16 o_settings_container" id="accounting_section">
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_right_pane">
+                            <span class="o_form_label">ID de la conexion en el servidor:</span>
+                            <field name="server_id"/><br/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <span class="o_form_label">Se conecta con la impresora fiscal? </span><field name="pos_fiscal"/>
+                        </div>
+                    </div>
+                </div>
+
+            </xpath>
+        </field>
+    </record>
+        <record id="pos_order_view_tree_posconn" model="ir.ui.view">
+        <field name="name">pos.order.tree.view.inherit</field>
+        <field name="model">pos.order</field>
+        <field name="priority">5</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_order_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='amount_total']" position="after">
+                <field name="server_id"/>
+                <field name="nif"/>
+                <button name="action_order_sync_manual" string="Sync"
+                        type="object"
+                        attrs="{'invisible':[('server_id','>',0)]}"
+                        class="oe_highlight"/>
+            </xpath>
+        </field>
+    </record>
+  </data>
+</odoo>

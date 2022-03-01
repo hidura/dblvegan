@@ -1,0 +1,19 @@
+<odoo>
+    <data>
+        <record id="product_product_tree_view_inherit" model="ir.ui.view">
+            <field name="name">product.product.tree.inherit</field>
+            <field name="model">product.product</field>
+            <field name="priority">5</field>
+            <field name="inherit_id" ref="product.product_product_tree_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='active']" position="after">
+                    <field name="server_id"/>
+                    <button name="action_sync_manual" string="Sync"
+                            type="object"
+                            attrs="{'invisible':[('server_id','>',0)]}"
+                            class="oe_highlight"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

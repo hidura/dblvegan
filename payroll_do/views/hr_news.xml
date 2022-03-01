@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="action_gen_news" model="ir.actions.act_window">
+        <field name="name">Create Input</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">hr.payslip.input</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            There's no news
+          </p><p>
+          </p>
+        </field>
+    </record>
+    <record id="hr_payslip_input_view" model="ir.ui.view">
+        <field name="name">hr.payslip.input.tree</field>
+        <field name="model">hr.payslip.input</field>
+        <field name="arch" type="xml">
+            <tree string="News" multi_edit="1">
+                <field name="name" string="Name" readonly="1"/>
+                <field name="input_type_id" string="Descripcion" readonly="1"/>
+                <field name="payslip_id" string="Payslip" readonly="1"/>
+                <field name="amount" string="Amount" readonly="1"/>
+                <field name="struct_id" string="Structure" readonly="1"/>
+                <field name="contract_id" string="Contract" readonly="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_hr_payroll_news_root"
+        name="News"
+        parent="hr_payroll.menu_hr_payroll_root"
+        sequence="70"/>
+    <menuitem
+        id="menu_hr_news"
+        action="action_gen_news"
+        parent="menu_hr_payroll_news_root"
+        sequence="1"
+    />
+</odoo>
