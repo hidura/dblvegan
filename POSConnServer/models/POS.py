@@ -13,14 +13,3 @@ class POSORDER(models.Model):
         picking_move = order_info.create_picking()
 
         return account_move
-
-class POSCONFIG(models.Model):
-    _inherit = "pos.config"
-    default_partner_id = fields.Integer('default_partner_id')
-
-
-class account_move(models.Model):
-    _inherit = "account.move"
-    fiscal_status=fields.Char("Fiscal Status")
-    need_certification=fields.Boolean("Need Certification")
-    
