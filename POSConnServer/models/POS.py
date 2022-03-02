@@ -10,6 +10,11 @@ class POSORDER(models.Model):
         # Move Line creation:
         order_info =self.env['pos.order'].search([('id','=',args[0]['order_id'])])
         account_move=order_info.action_pos_order_invoice()
-        picking_move = order_info.create_picking()
+        #picking_move = order_info.create_picking()
 
         return account_move
+
+class POSCONFIG(models.Model):
+    _inherit = "pos.config"
+    default_partner_id = fields.Integer('default_partner_id')
+

@@ -59,6 +59,8 @@
                             <field name="third_withheld_itbis" string="Withheld ITBIS by a third"/>
                             <field name="third_income_withholding" string="Income Withholding by a third"/>
                         </group>
+
+
                         <group col="3" string="Taxes" groups="account.group_account_manager">
                             <field name="invoiced_itbis" string="Invoiced ITBIS"/>
                             <field name="selective_tax" string="Selective Tax"/>
