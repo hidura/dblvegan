@@ -36,3 +36,4 @@ from . import md32
 from . import md33
 from . import md34
 from . import md35
+from .generators.interface import GeneratorInterface
