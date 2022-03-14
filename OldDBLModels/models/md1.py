@@ -77,7 +77,7 @@ class ElectronicPayroll(models.Model):
                                      required=1)
     company_id = fields.Many2one('res.company', string='Company',
                                  default=lambda x: x.env.company)
-    #electronic_payroll_type = fields.Selection(related='company_id.electronic_payroll_type', string='Type')
+    electronic_payroll_type = fields.Selection([], string='Type')
     binary = fields.Binary(readonly=1)
     binary_name = fields.Char(readonly=1)
     binary_ext = fields.Selection([('txt','TXT'), ('csv', 'CSV')], string='Extension', default='txt', required=1)
