@@ -2,6 +2,7 @@ from odoo import models, fields, api
 
 from odoo.exceptions import UserError
 
+from .interface import GeneratorType
 
 class ResBank(models.Model):
     _inherit = 'res.bank'
@@ -147,9 +148,9 @@ class ElectronicPayroll(models.Model):
         if not self.line_ids:
             raise UserError('There are no lines to generate the file.')
 
-        # ep_type = self.company_id.electronic_payroll_type
-        # if not ep_type:
-        #     raise UserError("Your Company doesn't have Electronic Payroll configuration")
+        ep_type = self.company_id.electronic_payroll_type
+        if not ep_type:
+             raise UserError("Your Company doesn't have Electronic Payroll configuration")
 
         records = self.line_ids.filtered(
             lambda r: r.no_file == False and not r.bank_account_id
@@ -158,9 +159,9 @@ class ElectronicPayroll(models.Model):
         if records:
             raise UserError('Records without Bank Account')
 
-        # generator = GeneratorType.get(ep_type)
-        # file_io, file_value = generator.generate_txt(self)
-        #
-        # name = "{}.{}".format(self.name, self.binary_ext)
-        # self.write({'binary': file_io, 'binary_name': name})
+        generator = GeneratorType.get(ep_type)
+        file_io, file_value = generator.generate_txt(self)
+
+        name = "{}.{}".format(self.name, self.binary_ext)
+        self.write({'binary': file_io, 'binary_name': name})
 

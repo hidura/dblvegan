@@ -7,6 +7,7 @@ class ResCompany(models.Model):
     _inherit = 'res.company'
 
     preload_employee = fields.Boolean(default=True, string='Preload of Employee')
+    electronic_payroll_type = fields.Selection([])
 
 
 class ResConfigSettings(models.TransientModel):
