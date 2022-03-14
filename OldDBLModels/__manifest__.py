@@ -17,7 +17,7 @@
         'views/ir_config_empl.xml',
         'views/views_elec_empl.xml',
         'views/res_bank_empl.xml',
-        'hr_employee_.xml'
+        'views/hr_employee_.xml'
     ],
     'demo': [],
     'qweb': [],
