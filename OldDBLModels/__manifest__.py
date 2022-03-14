@@ -14,7 +14,10 @@
     'category': 'Administration',
 
     'data': [
-        'views/ir_config_empl.xml'
+        'views/ir_config_empl.xml',
+        'views/views_elec_empl.xml',
+        'views/res_bank_empl.xml',
+        'hr_employee.xml'
     ],
     'demo': [],
     'qweb': [],
