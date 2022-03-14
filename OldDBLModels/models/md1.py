@@ -2,7 +2,7 @@ from odoo import models, fields, api
 
 from odoo.exceptions import UserError
 
-from generators.interface import GeneratorType
+from interface import GeneratorType
 
 class ResBank(models.Model):
     _inherit = 'res.bank'
