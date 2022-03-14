@@ -14,6 +14,7 @@
     'category': 'Administration',
 
     'data': [
+        'views/ir_config_empl.xml'
     ],
     'demo': [],
     'qweb': [],
