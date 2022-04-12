@@ -17,7 +17,7 @@ class HrPayslip(models.Model):
         vals['name']='Recibo de Salario - {} - {}/{}'.format(empl_info.name,
                                                              today.month,today.year)
 
-
+        print(vals)
         record = super(HrPayslip, self).create(vals)
         return record
     def _prepare_line_values(self, line, account_id, date, debit, credit):
