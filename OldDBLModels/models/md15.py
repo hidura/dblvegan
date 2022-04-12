@@ -11,6 +11,7 @@ class HrPayslip(models.Model):
 
     @api.model
     def create(self, vals):
+        print(self.employee_id.name)
         vals['name']='Recibo de Salario - {} - {}'.format(self.employee_id.name,self.number)
 
 
