@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import logging
 from odoo import api, fields, models, _
+from datetime import date
 
 _logger = logging.getLogger(__name__)
 
@@ -12,8 +13,9 @@ class HrPayslip(models.Model):
     @api.model
     def create(self, vals):
         empl_info=self.env['hr.employee'].search([('id','=',vals['employee_id'])])
-        print(empl_info)
-        vals['name']='Recibo de Salario - {} - {}'.format(empl_info.name,vals['number'])
+        today = date.today()
+        vals['name']='Recibo de Salario - {} - {}/{}'.format(empl_info.name,
+                                                             today.month,today.year)
 
 
         record = super(HrPayslip, self).create(vals)
