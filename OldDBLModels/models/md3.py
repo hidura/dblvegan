@@ -9,6 +9,7 @@ _logger = logging.getLogger(__name__)
 class HrPayslipRun(models.Model):
     _inherit = 'hr.payslip.run'
 
+
     @api.onchange('date_start')
     def _onchange_date_start(self):
         self.apply_on = '1' if self.date_start.day <= 15 else '2'
