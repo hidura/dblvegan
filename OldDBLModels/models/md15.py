@@ -14,12 +14,15 @@ class HrPayslip(models.Model):
     def create(self, vals):
         empl_info=self.env['hr.employee'].search([('id','=',vals['employee_id'])])
         today = date.today()
-        vals['name']='Recibo de Salario - {} - {}/{}'.format(empl_info.name,
+        if empl_info.name!=False:
+            vals['name']='Recibo de Salario - {} - {}/{}'.format(empl_info.name,
                                                              today.month,today.year)
 
-        print(vals)
-        record = super(HrPayslip, self).create(vals)
-        return record
+            print(vals)
+            record = super(HrPayslip, self).create(vals)
+            return record
+        else:
+            return None
     def _prepare_line_values(self, line, account_id, date, debit, credit):
 
         data = {
