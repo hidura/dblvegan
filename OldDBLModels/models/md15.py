@@ -11,8 +11,8 @@ class HrPayslip(models.Model):
 
     @api.model
     def create(self, vals):
-        raise Exception(vals)
-        vals['name']='Recibo de Salario - {} - {}'.format(self.employee_id.name,self.number)
+        empl_info=self.env['hr_employee'].search([('id','=',vals['employee_id'])])
+        vals['name']='Recibo de Salario - {} - {}'.format(self.empl_info.name,self.number)
 
 
         record = super(HrPayslip, self).create(vals)
