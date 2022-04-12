@@ -9,6 +9,13 @@ _logger = logging.getLogger(__name__)
 class HrPayslip(models.Model):
     _inherit = 'hr.payslip'
 
+    @api.model
+    def create(self, vals):
+        vals['name']='Recibo de Salario - {} - {}'.format(self.employee_id.name,self.number)
+
+
+        record = super(HrPayslip, self).create(vals)
+        return record
     def _prepare_line_values(self, line, account_id, date, debit, credit):
 
         data = {
