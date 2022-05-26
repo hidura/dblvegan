@@ -12,14 +12,15 @@ class HrPayslip(models.Model):
 
     @api.model
     def create(self, vals):
+
+        record = super(HrPayslip, self).create(vals)
         empl_info=self.env['hr.employee'].search([('id','=',vals['employee_id'])])
         today = date.today()
         if empl_info.name!=False:
             vals['name']='Recibo de Salario - {} - {}/{}'.format(empl_info.name,
                                                              today.month,today.year)
 
-            print(vals)
-            record = super(HrPayslip, self).create(vals)
+
             return record
         else:
             return None
