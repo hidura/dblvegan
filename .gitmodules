@@ -1,0 +1,4 @@
+[submodule "neotec/fiscal_odoo"]
+	path = neotec/fiscal_odoo
+	url = git@gitlab.neotec.do:Web_Odoo/fiscal_odoo.git
+	branch = 13.0
