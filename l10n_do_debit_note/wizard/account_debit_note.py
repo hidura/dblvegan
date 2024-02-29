@@ -133,13 +133,14 @@ class AccountDebitNote(models.TransientModel):
             and self.l10n_latam_country_code == "DO"
         ):
             move_id = self.move_ids[0]
+            move_type = "out_invoice" if move_id.is_sale_document() else "in_invoice"
             move = (
                 self.env["account.move"]
                 .with_context(internal_type="debit_note")
                 .new(
                     {
                         "partner_id": move_id.partner_id.id,
-                        "type": move_id.type,
+                        "type": move_type,
                         "journal_id": move_id.journal_id.id,
                     }
                 )
@@ -172,6 +173,7 @@ class AccountDebitNote(models.TransientModel):
                 dict(
                     l10n_do_ecf_modification_code=self.l10n_do_ecf_modification_code,
                     l10n_latam_document_type_id=self.l10n_latam_document_type_id.id,
+                    is_l10n_do_internal_sequence=move.is_l10n_do_internal_sequence,
                     l10n_latam_document_number=self.l10n_latam_document_number,
                     l10n_do_origin_ncf=move.l10n_latam_document_number,
                     l10n_do_expense_type=move.l10n_do_expense_type,
