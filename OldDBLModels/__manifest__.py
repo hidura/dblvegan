@@ -3,7 +3,7 @@
 
 {
     'name': 'OldDBLVeganSer',
-    'version': '13.0.2',
+    'version': '13.0.3',
     'sequence': 265,
     'category':"Sales",
     'author':'Oikos Chain Team',
