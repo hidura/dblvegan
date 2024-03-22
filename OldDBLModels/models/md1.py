@@ -3,6 +3,7 @@ from odoo import models, fields, api
 from odoo.exceptions import UserError
 
 from .interface import GeneratorType
+from .interface import GeneratorInterface
 
 class ResBank(models.Model):
     _inherit = 'res.bank'
@@ -41,8 +42,13 @@ class HrEmployeeBase(models.AbstractModel):
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
-    electronic_payroll_type = fields.Selection([],
-        readonly=0
+    electronic_payroll_type = fields.Selection([
+        ('BHD', 'Banco BHD'),
+        ('BPD', 'Banco Popular'),
+        ('BDR', 'Banco Reservas'),
+        ('SCB', 'ScotianBank'),
+        ('BC', 'Banco Caribe')
+    ], readonly=0
     )
     electronic_payroll_email = fields.Char([],
         readonly=0
@@ -78,7 +84,11 @@ class ElectronicPayroll(models.Model):
                                      required=1)
     company_id = fields.Many2one('res.company', string='Company',
                                  default=lambda x: x.env.company)
-    electronic_payroll_type = fields.Selection([], string='Type')
+    electronic_payroll_type = fields.Selection([('BHD', 'Banco BHD'),
+        ('BPD', 'Banco Popular'),
+        ('BDR', 'Banco Reservas'),
+        ('SCB', 'ScotianBank'),
+        ('BC', 'Banco Caribe')], string='Type')
     binary = fields.Binary(readonly=1)
     binary_name = fields.Char(readonly=1)
     binary_ext = fields.Selection([('txt','TXT'), ('csv', 'CSV')], string='Extension', default='txt', required=1)
@@ -158,8 +168,9 @@ class ElectronicPayroll(models.Model):
 
         if records:
             raise UserError('Records without Bank Account')
-
-        generator = GeneratorType.get(ep_type)
+        print(ep_type)
+        # generatorType = GeneratorType(code=ep_type)
+        generator = GeneratorInterface(ep_type)
         file_io, file_value = generator.generate_txt(self)
 
         name = "{}.{}".format(self.name, self.binary_ext)
