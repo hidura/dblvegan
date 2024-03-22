@@ -114,7 +114,7 @@ class DgiiReport(models.Model):
     state = fields.Selection([('draft', 'New'), ('error', 'With error'),
                               ('generated', 'Generated'), ('sent', 'Sent')],
                              default='draft',
-                             track_visibility='onchange',
+                             tracking=True,
                              copy=False)
     previous_balance = fields.Float('Previous balance', copy=False)
     currency_id = fields.Many2one(
@@ -484,24 +484,32 @@ class DgiiReport(models.Model):
         ])
 
     def _generate_606_txt(self, records, qty):
-        pass
 
-    #         company_vat = self.company_id.vat
-    #         period = dt.strptime(self.name.replace('/', ''),
-    #                              '%m%Y').strftime('%Y%m')
+        keep_txt_spaces = int(
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("dgii.reports.txt.space", 0)
+        )
 
-    #         header = "606|{}|{}|{}".format(
-    #             str(company_vat).ljust(11), period, qty) + '\n'
-    #         data = header + records
+        if not bool(keep_txt_spaces):
+            records = records.replace(" ", "")
 
-    #         file_path = '/tmp/DGII_606_{}_{}.txt'.format(company_vat, period)
-    #         with open(file_path, 'w', encoding="utf-8", newline='\r\n') as txt_606:
-    #             txt_606.write(str(data))
+        company_vat = self.company_id.vat
+        period = dt.strptime(self.name.replace('/', ''),
+                             '%m%Y').strftime('%Y%m')
 
-    #         self.write({
-    #             'purchase_filename': file_path.replace('/tmp/', ''),
-    #             'purchase_binary': base64.b64encode(open(file_path, 'rb').read())
-    #         })
+        header = "606|{}|{}|{}".format(
+            str(company_vat).ljust(11), period, qty) + '\n'
+        data = header + records
+
+        file_path = '/tmp/DGII_606_{}_{}.txt'.format(company_vat, period)
+        with open(file_path, 'w', encoding="utf-8", newline='\r\n') as txt_606:
+            txt_606.write(str(data))
+
+        self.write({
+            'purchase_filename': file_path.replace('/tmp/', ''),
+            'purchase_binary': base64.b64encode(open(file_path, 'rb').read())
+        })
 
     def _include_in_current_report(self, invoice):
         """
@@ -510,7 +518,7 @@ class DgiiReport(models.Model):
         New reported invoices should not include any
         withholding amount nor payment date
         if payment was made after current period.
-        :param invoice: account.invoice object
+        :param invoice: account.move object
         :return: boolean
         """
         if not invoice.payment_date:
@@ -518,13 +526,9 @@ class DgiiReport(models.Model):
 
         payment_date = invoice.payment_date
         period = dt.strptime(self.name, '%m/%Y')
-        same_minor_period = (payment_date.year, payment_date.month) <= (period.year, period.month)
-        _logger.info((payment_date, period,
-                      (payment_date.year, payment_date.month), (period.year, period.month),
-                      (payment_date.year, payment_date.month) <= (period.year, period.month)
-                      ))
+        same_minor_period = (payment_date.year,
+                             payment_date.month) <= (period.year, period.month)
 
-        # _logger.info((invoice.l10n_latam_document_number, period, same_minor_period ,(payment_date and same_minor_period)))
         return True if (payment_date and same_minor_period) else False
 
     def _compute_606_data(self):
@@ -597,13 +601,12 @@ class DgiiReport(models.Model):
             'others': 0
         }
 
-    def _convert_to_user_currency(self, base_currency, amount):
-        context = dict(self._context or {})
-        user_currency_id = self.env.user.company_id.currency_id
+    def _convert_to_user_currency(self, base_currency, date, amount):
+        user_company_id = self.env.user.company_id
+        user_currency_id = user_company_id.currency_id
         base_currency_id = base_currency
-        ctx = context.copy()
-        return abs(base_currency_id.with_context(ctx).compute(
-            amount, user_currency_id))
+        return base_currency_id._convert(
+            amount, user_currency_id, user_company_id, date)
 
     @staticmethod
     def include_payment(invoice_id, payment_id):
@@ -620,29 +623,46 @@ class DgiiReport(models.Model):
         Payment = self.env['account.payment']
 
         if invoice_id.type == 'out_invoice':
-            for payment in invoice_id._get_invoice_payment_widget():
-                payment_id = Payment.browse(payment['account_payment_id'])
-                if payment_id:
-                    key = payment_id.journal_id.l10n_do_payment_form
-                    if key:
-                        if self.include_payment(invoice_id, payment_id):
-                            payments_dict[
-                                key] += self._convert_to_user_currency(
-                                invoice_id.currency_id, payment['amount'])
-                        else:
-                            payments_dict[
-                                'credit'] += self._convert_to_user_currency(
-                                invoice_id.currency_id, payment['amount'])
-                else:
-                    # Do not consider credit notes as swap payments
-                    # continue
-                    payments_dict['credit'] += self._convert_to_user_currency(
-                        invoice_id.currency_id, payment['amount'])
+
+            if hasattr(invoice_id, "pos_order_ids"):
+                payments = invoice_id.pos_order_ids and invoice_id.pos_order_ids[0].payment_ids or []
+                for payment in payments:
+                    # l10n_do_payment_form field in account_payment_method is added by l10n_do_pos
+                    # this hasattr checks if the module is installed
+                    if hasattr(payment.payment_method_id, 'l10n_do_payment_form'):
+                        key = payment.payment_method_id.l10n_do_payment_form
+                        if key:
+                            payments_dict[key] += self._convert_to_user_currency(
+                                invoice_id.currency_id,
+                                invoice_id.date,
+                                payment.amount,
+                            )
+            else:
+                for payment in invoice_id._get_invoice_payment_widget():
+                    payment_id = Payment.browse(payment['account_payment_id'])
+                    if payment_id:
+                        key = payment_id.journal_id.l10n_do_payment_form
+                        if key:
+                            if self.include_payment(invoice_id, payment_id):
+                                payments_dict[key] += self._convert_to_user_currency(
+                                    invoice_id.currency_id,
+                                    invoice_id.date,
+                                    payment['amount'],
+                                )
+                            else:
+                                payments_dict['credit'] += self._convert_to_user_currency(
+                                    invoice_id.currency_id,
+                                    invoice_id.date,
+                                    payment['amount'],
+                                )
+                    else:
+                        payments_dict['credit'] += self._convert_to_user_currency(
+                            invoice_id.currency_id, invoice_id.date, payment['amount'])
             payments_dict['credit'] += self._convert_to_user_currency(
-                invoice_id.currency_id, invoice_id.amount_residual)
+                invoice_id.currency_id, invoice_id.date, invoice_id.amount_residual)
         else:
             payments_dict['credit'] += self._convert_to_user_currency(
-                invoice_id.currency_id, invoice_id.amount_total)
+                invoice_id.currency_id, invoice_id.date, invoice_id.amount_total)
 
         return payments_dict
 
@@ -655,84 +675,133 @@ class DgiiReport(models.Model):
                 'name': 'COMPROBANTE VÁLIDO PARA CRÉDITO FISCAL',
                 'dgii_report_id': self.id
             },
-            'consumer': {
+            'e-fiscal': {
                 'sequence': 2,
+                'qty': 0,
+                'amount': 0,
+                'name': 'COMPROBANTE VÁLIDO PARA CRÉDITO FISCAL ELECTRÓNICO',
+                'dgii_report_id': self.id
+            },
+            'consumer': {
+                'sequence': 3,
                 'qty': 0,
                 'amount': 0,
                 'name': 'COMPROBANTE CONSUMIDOR FINAL',
                 'dgii_report_id': self.id
             },
+            'e-consumer': {
+                'sequence': 4,
+                'qty': 0,
+                'amount': 0,
+                'name': 'COMPROBANTE CONSUMIDOR FINAL ELECTRÓNICO',
+                'dgii_report_id': self.id
+            },
             'export': {
-                'sequence': 3,
+                'sequence': 5,
                 'qty': 0,
                 'amount': 0,
                 'name': 'COMPROBANTE DE EXPORTACIONES',
                 'dgii_report_id': self.id
             },
+            'e-export': {
+                'sequence': 6,
+                'qty': 0,
+                'amount': 0,
+                'name': 'COMPROBANTE DE EXPORTACIONES ELECTRÓNICO',
+                'dgii_report_id': self.id
+            },
             'debit_note': {
-                'sequence': 4,
+                'sequence': 7,
                 'qty': 0,
                 'amount': 0,
                 'name': 'COMPROBANTES NOTA DE DÉBITO',
                 'dgii_report_id': self.id
             },
+            'e-debit_note': {
+                'sequence': 8,
+                'qty': 0,
+                'amount': 0,
+                'name': 'COMPROBANTES NOTA DE DÉBITO ELECTRÓNICO',
+                'dgii_report_id': self.id
+            },
             'credit_note': {
-                'sequence': 5,
+                'sequence': 9,
                 'qty': 0,
                 'amount': 0,
                 'name': 'COMPROBANTES NOTA DE CRÉDITO',
                 'dgii_report_id': self.id
             },
+            'e-credit_note': {
+                'sequence': 10,
+                'qty': 0,
+                'amount': 0,
+                'name': 'COMPROBANTES NOTA DE CRÉDITO ELECTRÓNICO',
+                'dgii_report_id': self.id
+            },
             'unique': {
-                'sequence': 6,
+                'sequence': 11,
                 'qty': 0,
                 'amount': 0,
                 'name': 'COMPROBANTE REGISTRO ÚNICO DE INGRESOS',
                 'dgii_report_id': self.id
             },
             'special': {
-                'sequence': 8,
+                'sequence': 12,
                 'qty': 0,
                 'amount': 0,
                 'name': 'COMPROBANTE REGISTRO REGIMENES ESPECIALES',
                 'dgii_report_id': self.id
             },
+            'e-special': {
+                'sequence': 13,
+                'qty': 0,
+                'amount': 0,
+                'name': 'COMPROBANTE REGISTRO REGIMENES ESPECIALES ELECTRÓNICO',
+                'dgii_report_id': self.id
+            },
             'governmental': {
-                'sequence': 9,
+                'sequence': 14,
                 'qty': 0,
                 'amount': 0,
                 'name': 'COMPROBANTES GUBERNAMENTALES',
                 'dgii_report_id': self.id
             },
-            #             'positive': {
-            #                 'sequence': 10,
-            #                 'qty': 0,
-            #                 'amount': 0,
-            #                 'name': 'OTRAS OPERACIONES (POSITIVAS) - *PENDIENTE*',
-            #                 'dgii_report_id': self.id
-            #             },
-            #             'negative': {
-            #                 'sequence': 11,
-            #                 'amount': 0,
-            #                 'qty': 0,
-            #                 'name': 'OTRAS OPERACIONES (NEGATIVAS) - *PENDIENTE*',
-            #                 'dgii_report_id': self.id
-            #             },
+            'e-governmental': {
+                'sequence': 15,
+                'qty': 0,
+                'amount': 0,
+                'name': 'COMPROBANTES GUBERNAMENTALES ELECTRÓNICO',
+                'dgii_report_id': self.id
+            },
+            'positive': {
+                'sequence': 16,
+                'qty': 0,
+                'amount': 0,
+                'name': 'OTRAS OPERACIONES (POSITIVAS) - *PENDIENTE*',
+                'dgii_report_id': self.id
+            },
+            'negative': {
+                'sequence': 17,
+                'qty': 0,
+                'amount': 0,
+                'name': 'OTRAS OPERACIONES (NEGATIVAS) - *PENDIENTE*',
+                'dgii_report_id': self.id
+            },
         }
 
     def _process_op_dict(self, args, invoice):
         op_dict = args
-        amount_untaxed = invoice._convert_to_local_currency(invoice.amount_untaxed)
         if invoice.l10n_latam_document_type_id and invoice.type != 'out_refund':
-            op_dict[invoice.l10n_latam_document_type_id.l10n_do_ncf_type]['qty'] += 1
-            op_dict[invoice.l10n_latam_document_type_id.l10n_do_ncf_type][
-                'amount'] += amount_untaxed
-        if invoice.type == 'out_refund' and not invoice.is_debit_note:
+            ncf_type = invoice.l10n_latam_document_type_id.l10n_do_ncf_type
+            op_dict[ncf_type]['qty'] += 1
+            op_dict[ncf_type][
+                'amount'] += invoice.amount_untaxed_signed
+        if invoice.type == 'out_refund' and not invoice.is_debit_note: # nd nota de debito cambiado por debit_note
             op_dict['credit_note']['qty'] += 1
-            op_dict['credit_note']['amount'] += amount_untaxed
+            op_dict['credit_note']['amount'] += invoice.amount_untaxed_signed # nc nota de credito cambiado por credit_note
         if invoice.is_debit_note:
             op_dict['debit_note']['qty'] += 1
-            op_dict['debit_note']['amount'] += amount_untaxed
+            op_dict['debit_note']['amount'] += invoice.amount_untaxed_signed
 
         return op_dict
 
@@ -746,25 +815,25 @@ class DgiiReport(models.Model):
             rec.swap = payments_dict.get('swap')
             rec.others = payments_dict.get('others')
             rec.sale_type_total = rec.cash + rec.bank + \
-                                  rec.card + rec.credit + rec.bond + rec.swap + rec.others
+                rec.card + rec.credit + rec.bond + rec.swap + rec.others
 
     def _get_income_type_dict(self):
-        return {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
+        return {'01': 0, '02': 0, '03': 0, '04': 0, '05': 0, '06': 0}
 
     def _process_income_dict(self, args, invoice):
         income_dict = args
-        if invoice.l10n_do_income_type and invoice.type == 'out_invoice':
-            income_dict[int(invoice.l10n_do_income_type)] += invoice.amount_untaxed
+        if invoice.l10n_do_income_type:
+            income_dict[invoice.l10n_do_income_type] += invoice.amount_untaxed_signed
         return income_dict
 
     def _set_income_type_fields(self, income_dict):
         for rec in self:
-            rec.opr_income = income_dict.get(1)
-            rec.fin_income = income_dict.get(2)
-            rec.ext_income = income_dict.get(3)
-            rec.lea_income = income_dict.get(4)
-            rec.ast_income = income_dict.get(5)
-            rec.otr_income = income_dict.get(6)
+            rec.opr_income = income_dict.get('01')
+            rec.fin_income = income_dict.get('02')
+            rec.ext_income = income_dict.get('03')
+            rec.lea_income = income_dict.get('04')
+            rec.ast_income = income_dict.get('05')
+            rec.otr_income = income_dict.get('06')
             rec.income_type_total = \
                 rec.opr_income + rec.fin_income + rec.ext_income + \
                 rec.lea_income + rec.ast_income + rec.otr_income
@@ -800,31 +869,30 @@ class DgiiReport(models.Model):
         BOND = self._get_formated_amount(values['bond'])
         OTHR = self._get_formated_amount(values['others'])
 
-    #         return "|".join([
-    #             RNC, ID_TYPE, NCF, NCM, INCOME_TYPE, INV_DATE, WH_DATE, INV_AMOUNT,
-    #             INV_ITBIS, WH_ITBIS, PRC_ITBIS, WH_ISR, PCR_ISR, ISC, OTH_TAX,
-    #             LEG_TIP, CASH, BANK, CARD, CRED, SWAP, BOND, OTHR
-    #         ])
+        return "|".join([
+            RNC, ID_TYPE, NCF, NCM, INCOME_TYPE, INV_DATE, WH_DATE, INV_AMOUNT,
+            INV_ITBIS, WH_ITBIS, PRC_ITBIS, WH_ISR, PCR_ISR, ISC, OTH_TAX,
+            LEG_TIP, CASH, BANK, CARD, CRED, SWAP, BOND, OTHR
+        ])
 
     def _generate_607_txt(self, records, qty):
-        pass
 
-    #         company_vat = self.company_id.vat
-    #         period = \
-    #             dt.strptime(self.name.replace('/', ''), '%m%Y').strftime('%Y%m')
+        company_vat = self.company_id.vat
+        period = \
+            dt.strptime(self.name.replace('/', ''), '%m%Y').strftime('%Y%m')
 
-    #         header = "607|{}|{}|{}".format(
-    #             str(company_vat).ljust(11), period, qty) + '\n'
-    #         data = header + records
+        header = "607|{}|{}|{}".format(
+            str(company_vat).ljust(11), period, qty) + '\n'
+        data = header + records
 
-    #         file_path = '/tmp/DGII_607_{}_{}.txt'.format(company_vat, period)
-    #         with open(file_path, 'w', encoding="utf-8", newline='\r\n') as txt_607:
-    #             txt_607.write(str(data))
+        file_path = '/tmp/DGII_607_{}_{}.txt'.format(company_vat, period)
+        with open(file_path, 'w', encoding="utf-8", newline='\r\n') as txt_607:
+            txt_607.write(str(data))
 
-    #         self.write({
-    #             'sale_filename': file_path.replace('/tmp/', ''),
-    #             'sale_binary': base64.b64encode(open(file_path, 'rb').read())
-    #         })
+        self.write({
+            'sale_filename': file_path.replace('/tmp/', ''),
+            'sale_binary': base64.b64encode(open(file_path, 'rb').read())
+        })
 
     def _get_csmr_vals_dict(self):
         return {
@@ -869,13 +937,10 @@ class DgiiReport(models.Model):
                     'blocked' if not inv.fiscal_status else inv.fiscal_status
                 rnc_ced = self.formated_rnc_cedula(
                     inv.partner_id.vat
-                    # 12 = Unico Ingreso
-                ) if inv.l10n_latam_document_type_id.l10n_do_ncf_type != '12' \
+                ) if inv.l10n_latam_document_type_id.l10n_do_ncf_type != 'unique' \
                     else self.formated_rnc_cedula(inv.company_id.vat)
                 show_payment_date = self._include_in_current_report(inv)
                 payments = self._get_sale_payments_forms(inv)
-
-                # _logger.info((show_payment_date, inv.payment_date,inv.invoice_date, inv.l10n_latam_document_number, inv.type != "out_refund" and show_payment_date))
                 values = {
                     'dgii_report_id': rec.id,
                     'line': line,
@@ -884,14 +949,14 @@ class DgiiReport(models.Model):
                     'fiscal_invoice_number': inv.l10n_latam_document_number,
                     'modified_invoice_number':
                         inv.l10n_do_origin_ncf if inv.l10n_do_origin_ncf and
-                                                  inv.l10n_do_origin_ncf[-10:-8] in ['01', '02', '14', '15'] else False,
-                    'income_type': int(inv.l10n_do_income_type),
-                    # dict(inv._fields['l10n_do_income_type'].selection).get(inv.l10n_do_income_type) ,#inv.l10n_do_income_type,
+                        inv.l10n_do_origin_ncf[1:3] in ['01', '31', '02', '32', '14', '44', '15', '45'] else
+                        False,
+                    'income_type': inv.l10n_do_income_type,
                     'invoice_date': inv.invoice_date,
                     'withholding_date': inv.payment_date if (
-                            inv.type != 'out_refund' and
-                            show_payment_date) else False,
-                    'invoiced_amount': abs(inv._convert_to_local_currency(inv.amount_untaxed)),
+                        inv.type != 'out_refund' and
+                        show_payment_date) else False,
+                    'invoiced_amount': abs(inv.amount_untaxed_signed),
                     'invoiced_itbis': abs(inv.invoiced_itbis),
                     'third_withheld_itbis': abs(inv.third_withheld_itbis)
                     if show_payment_date else 0,
@@ -942,17 +1007,17 @@ class DgiiReport(models.Model):
                 values.update({'line': line})
                 SaleLine.create(values)
                 if str(values.get('fiscal_invoice_number'))[-10:-8] == \
-                        '02' and inv.amount_untaxed < 250000:
+                        '02' and inv.amount_untaxed_signed < 250000:
                     excluded_line += 1
                     # Excluye las facturas de Consumo
                     # con monto menor a 250000 solo del txt
                     pass
-                #                 else:
-                #                     report_data += self.process_607_report_data(values) + '\n'
+                else:
+                    report_data += self.process_607_report_data(values) + '\n'
 
                 for k in payment_dict:
                     payment_dict[k] += payments[k] * -1 if inv.type == \
-                                                           'out_refund' else payments[k]
+                        'out_refund' else payments[k]
 
             for k in op_dict:
                 self.env['dgii.reports.sale.summary'].create(op_dict[k])
@@ -960,8 +1025,7 @@ class DgiiReport(models.Model):
             self._set_csmr_fields_vals(csmr_dict)
             self._set_payment_form_fields(payment_dict)
             self._set_income_type_fields(income_dict)
-
-    #             self._generate_607_txt(report_data, line - excluded_line)
+            self._generate_607_txt(report_data, line - excluded_line)
 
     def process_608_report_data(self, values):
 
@@ -998,18 +1062,13 @@ class DgiiReport(models.Model):
 
             invoice_ids = self._get_invoices(['cancel'], [
                 'out_invoice', 'out_refund'
-            ]).filtered(lambda inv: (inv.l10n_latam_document_type_id.name != 'normal'))
-
+            ]).filtered(lambda inv: (inv.l10n_latam_document_type_id.l10n_do_ncf_type != 'normal'))
             line = 0
             report_data = ''
             for inv in invoice_ids:
-                if inv.state != 'cancel':
-                    continue
-
                 inv.fiscal_status = 'blocked' if not inv.fiscal_status else \
                     inv.fiscal_status
                 line += 1
-
                 values = {
                     'dgii_report_id': rec.id,
                     'line': line,
@@ -1021,7 +1080,7 @@ class DgiiReport(models.Model):
                 }
                 CancelLine.create(values)
                 report_data += self.process_608_report_data(values) + '\n'
-                # raise UserError('Tipo Cancelacion: %s' % CANCEL_TYPE.get(inv.cancellation_type))
+
             self._generate_608_txt(report_data, line)
 
     def process_609_report_data(self, values):
@@ -1078,7 +1137,7 @@ class DgiiReport(models.Model):
             invoice_ids = self._get_invoices(['posted'], [
                 'in_invoice', 'in_refund'
             ]).filtered(lambda inv: (inv.partner_id.country_id.code != 'DO')
-                                    and (inv.l10n_latam_document_type_id.name == 'exterior'))
+                        and (inv.l10n_latam_document_type_id.l10n_do_ncf_type == 'exterior'))
             line = 0
             report_data = ''
             for inv in invoice_ids:
@@ -1091,15 +1150,15 @@ class DgiiReport(models.Model):
                     'legal_name': inv.partner_id.name,
                     'tax_id_type':
                         1
-                        if inv.partner_id.company_type == 'individual' else 2,
+                        if inv.partner_id.company_type == 'person' else 2,
                     'tax_id': inv.partner_id.vat,
                     'country_code': self._get_country_number(inv.partner_id),
                     'purchased_service_type': dict(inv._fields['service_type'].selection).get(inv.service_type),
                     'service_type_detail': inv.service_type_detail.code,
                     'related_part': int(inv.partner_id.related),
-                    'doc_number': inv.number,
+                    'doc_number': inv.name,
                     'doc_date': inv.invoice_date,
-                    'invoiced_amount': inv.amount_untaxed,
+                    'invoiced_amount': inv.amount_untaxed_signed,
                     'isr_withholding_date': inv.payment_date if
                     inv.payment_date else False,
                     'presumed_income': 0,  # Pendiente
@@ -1126,7 +1185,7 @@ class DgiiReport(models.Model):
     def generate_report(self):
         if self.state == 'generated':
             action = self.env.ref(
-                'dgii.dgii_report_regenerate_wizard_action').read()[0]
+                'OldDBLModels.dgii_report_regenerate_wizard_action').read()[0]
             action['context'] = {'default_report_id': self.id}
             return action
         else:
@@ -1159,20 +1218,34 @@ class DgiiReport(models.Model):
                 ('dgii_report_id', '=', report.id)
             ]).mapped('invoice_id')
             for inv in invoice_ids:
-                if inv.state in ['paid', 'cancel'] and \
+                if inv.invoice_payment_state == 'paid' and \
                         self._include_in_current_report(inv):
                     inv.fiscal_status = 'done'
                     continue
 
-                if self._has_withholding(inv):
+                if self._has_withholding(inv) or not inv.payment_date:
                     inv.fiscal_status = 'normal'
                 else:
                     inv.fiscal_status = 'done'
 
-    # @api.multi
+    def update_pending_invoices(self):
+        """
+        Some invoices which fiscal status is Partial may not update its status to
+        Reported because they don't have any withholding in its payments. Those invoices
+        are searched and updated in this function.
+        """
+
+        invoice_ids = self.env["account.move"].search([
+            ("invoice_payment_state", "=", "paid"),
+            ("fiscal_status", "=", "normal"),
+            ("payment_date", "=", False),
+        ])
+        invoice_ids.write({"fiscal_status": "done"})
+
     def state_sent(self):
         for report in self:
             report._invoice_status_sent()
+            report.update_pending_invoices()
             report.state = 'sent'
 
     def get_606_tree_view(self):
@@ -1298,13 +1371,10 @@ class DgiiReportSaleLine(models.Model):
     fiscal_invoice_number = fields.Char(size=19)
     modified_invoice_number = fields.Char(size=19)
     income_type = fields.Char()
-
     invoice_date = fields.Date()
     date_period = fields.Char('Fecha Comprobante', compute='date_format', store='1')
-
     withholding_date = fields.Date()
     withholding_period = fields.Char('Fecha de Retencion', compute='date_format', store='1')
-
     invoiced_amount = fields.Float()
     invoiced_itbis = fields.Float()
     third_withheld_itbis = fields.Float()
