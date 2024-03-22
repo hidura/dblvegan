@@ -71,6 +71,27 @@ ISR_TYPE = {
 }
 
 
+class PosPaymentMethod(models.Model):
+    _inherit = 'pos.payment.method'
+
+    def _get_l10n_do_payment_form(self):
+        """ Return the list of payment forms allowed by DGII. """
+        return [
+            ("cash", _("Cash")),
+            ("bank", _("Check / Transfer")),
+            ("card", _("Credit Card")),
+            ("credit", _("Credit")),
+            ("swap", _("Swap")),
+            ("bond", _("Bonds or Gift Certificate")),
+            ("others", _("Other Sale Type")),
+        ]
+
+    payment_form = fields.Selection(
+        selection="_get_l10n_do_payment_form",
+        string="Payment Form",
+    )
+
+
 class DgiiReportSaleSummary(models.Model):
     _name = 'dgii.reports.sale.summary'
     _description = "DGII Report Sale Summary"
@@ -625,7 +646,7 @@ class DgiiReport(models.Model):
         if invoice_id.type == 'out_invoice':
 
             if hasattr(invoice_id, "pos_order_ids"):
-                payments = invoice_id.pos_order_ids and invoice_id.pos_order_ids[0].payment_ids or []
+                payments = invoice_id.pos_order_ids and invoice_id.pos_order_ids.mapped('payment_ids')
                 for payment in payments:
                     # l10n_do_payment_form field in DBL Market Environment is named payment_form
                     # in account_payment_method is added by l10n_do_pos
