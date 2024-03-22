@@ -29,7 +29,7 @@ class ReportIncomeWithholding(models.TransientModel):
             ('payment_date', '>=', start_date),
             ('payment_date', '<=', end_date),
             ('company_id', '=', self.env.company.id),
-            ('income_withholding', '!=', 0)
+            ('income_withholding', '!=', 0),
             ('type', 'in', ['in_invoice']),
         ])
         #.filtered(lambda inv: self.get_date_tuple(inv.payment_date) ==
