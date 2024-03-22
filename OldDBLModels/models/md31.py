@@ -627,10 +627,11 @@ class DgiiReport(models.Model):
             if hasattr(invoice_id, "pos_order_ids"):
                 payments = invoice_id.pos_order_ids and invoice_id.pos_order_ids[0].payment_ids or []
                 for payment in payments:
-                    # l10n_do_payment_form field in account_payment_method is added by l10n_do_pos
+                    # l10n_do_payment_form field in DBL Market Environment is named payment_form
+                    # in account_payment_method is added by l10n_do_pos
                     # this hasattr checks if the module is installed
-                    if hasattr(payment.payment_method_id, 'l10n_do_payment_form'):
-                        key = payment.payment_method_id.l10n_do_payment_form
+                    if hasattr(payment.payment_method_id, 'payment_form'):
+                        key = payment.payment_method_id.payment_form
                         if key:
                             payments_dict[key] += self._convert_to_user_currency(
                                 invoice_id.currency_id,
