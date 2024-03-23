@@ -1207,7 +1207,7 @@ class DgiiReport(models.Model):
     def generate_report(self):
         if self.state == 'generated':
             action = self.env.ref(
-                'OldDBLModels.dgii_report_regenerate_wizard_action').read()[0]
+                'dgii.dgii_report_regenerate_wizard_action').read()[0]
             action['context'] = {'default_report_id': self.id}
             return action
         else:
