@@ -19,14 +19,13 @@ class AccountDebitNote(models.TransientModel):
 
     @api.model
     def _get_l10n_do_debit_action_selection(self):
-
         return [
             ("draft_debit", _("Draft debit")),
             ("apply_debit", _("Apply debit")),
         ]
 
     l10n_latam_country_code = fields.Char(
-        default=lambda self: self.env.company.country_id.code,
+        default=lambda self: self.env.company.country_code,
         help="Technical field used to hide/show fields regarding the localization",
     )
     l10n_do_debit_type = fields.Selection(
@@ -72,7 +71,6 @@ class AccountDebitNote(models.TransientModel):
 
     @api.model
     def default_get(self, fields):
-
         res = super(AccountDebitNote, self).default_get(fields)
 
         move_ids = (
@@ -86,20 +84,16 @@ class AccountDebitNote(models.TransientModel):
 
         move_ids_use_document = move_ids.filtered(
             lambda move: move.l10n_latam_use_documents
-            and move.company_id.l10n_do_country_code == "DO"
+            and move.company_id.country_code == "DO"
         )
         if move_ids_use_document and not self.env.user.has_group(
-            "l10n_do_debit_note.group_l10n_do_debit_note"
+            "l10n_do_accounting.group_l10n_do_debit_note"
         ):
             raise AccessError(_("You are not allowed to issue Debit Notes"))
 
         # Setting default account
         journal = move_ids[0].journal_id
-        if self._context.get("type") in ("out_invoice", "in_refund"):
-            res["l10n_do_account_id"] = journal.default_credit_account_id.id
-        else:
-            res["l10n_do_account_id"] = journal.default_debit_account_id.id
-
+        res["l10n_do_account_id"] = journal.default_account_id.id
         res["l10n_latam_use_documents"] = journal.l10n_latam_use_documents
 
         # Do not allow Debit Notes if Comprobante de Compra or Gastos Menores
@@ -140,7 +134,7 @@ class AccountDebitNote(models.TransientModel):
                 .new(
                     {
                         "partner_id": move_id.partner_id.id,
-                        "type": move_type,
+                        "move_type": move_type,
                         "journal_id": move_id.journal_id.id,
                     }
                 )
@@ -164,45 +158,63 @@ class AccountDebitNote(models.TransientModel):
             }
 
     def _prepare_default_values(self, move):
-
         res = super(AccountDebitNote, self)._prepare_default_values(move)
 
         # Include additional info when l10n_do debit note
         if self.l10n_latam_country_code == "DO" and move.l10n_latam_use_documents:
             res.update(
                 dict(
-                    l10n_do_ecf_modification_code=self.l10n_do_ecf_modification_code,
                     l10n_latam_document_type_id=self.l10n_latam_document_type_id.id,
-                    is_l10n_do_internal_sequence=move.is_l10n_do_internal_sequence,
+                    l10n_do_ecf_modification_code=self.l10n_do_ecf_modification_code,
                     l10n_latam_document_number=self.l10n_latam_document_number,
                     l10n_do_origin_ncf=move.l10n_latam_document_number,
                     l10n_do_expense_type=move.l10n_do_expense_type,
                     l10n_do_income_type=move.l10n_do_income_type,
                     invoice_origin=move.name,
-                    is_debit_note=True,
-                    ref=move.name,
+                    line_ids=[(5, 0, 0)],
+                    l10n_do_fiscal_number=move.name,
                 )
             )
+
+        origin_invoice_id = self.move_ids or self.env["account.move"].browse(
+            self.env.context.get("active_ids")
+        )
+        taxes = (
+            [
+                (
+                    6,
+                    0,
+                    [origin_invoice_id._get_debit_line_tax(res["invoice_date"]).id],
+                )
+            ]
+            if self.l10n_do_debit_type
+            else [(5, 0)]
+        )
+        price_unit = (
+            self.l10n_do_amount
+            if self.l10n_do_debit_type == "fixed_amount"
+            else origin_invoice_id.amount_untaxed * (self.l10n_do_percentage / 100)
+        )
+        res["invoice_line_ids"] = [
+            (
+                0,
+                0,
+                {
+                    "name": self.reason or _("Debit"),
+                    "price_unit": price_unit,
+                    "quantity": 1,
+                    "tax_ids": taxes,
+                },
+            )
+        ]
 
         return res
 
     def create_debit(self):
-
-        action = super(
-            AccountDebitNote,
-            self.with_context(
-                l10n_do_debit_type=self.l10n_do_debit_type,
-                amount=self.l10n_do_amount,
-                percentage=self.l10n_do_percentage,
-                reason=self.reason,
-            ),
-        ).create_debit()
-        if (
-            self.l10n_latam_country_code == "DO"
-            and self.l10n_do_debit_action == "apply_debit"
-        ):
+        action = super(AccountDebitNote, self).create_debit()
+        if self.l10n_do_debit_action == "apply_debit":
             # Post Debit Note
             move_id = self.env["account.move"].browse(action.get("res_id", False))
-            move_id.post()
+            move_id._post()
 
         return action
