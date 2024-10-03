@@ -36,3 +36,6 @@ from . import md32
 from . import md33
 from . import md34
 from . import md35
+
+#new instance to stock.scrap
+from . import stock_scrap
