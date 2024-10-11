@@ -37,13 +37,13 @@ class AccountMove(models.Model):
 
         return certifications
 
-    @api.depends('invoice_payment_state')
+    @api.depends('payment_state')
     def _compute_need_certification(self):
         for invoice in self:
             need_certification = False
             invoice.need_certification = need_certification
 
-            if invoice.invoice_payment_state == 'paid':
+            if invoice.payment_state == 'paid':
                 for line in invoice.line_ids.filtered(lambda l: l.account_id.certification_id):
                     need_certification = True
                     if need_certification:

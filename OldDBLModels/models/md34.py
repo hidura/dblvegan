@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from odoo import models, fields, api
+from odoo import models, fields, api, _
+from odoo.exceptions import UserError
 
 
 class account_payment_select_cost_account(models.Model):
@@ -9,12 +10,12 @@ class account_payment_select_cost_account(models.Model):
     force_destination_account_id = fields.Many2one(
         'account.account', string="Cost Account")
 
-    @api.depends('invoice_ids', 'payment_type', 'partner_type', 'partner_id', 'force_destination_account_id')
+    @api.depends('reconciled_invoice_ids', 'payment_type', 'partner_type', 'partner_id', 'force_destination_account_id')
     def _compute_destination_account_id(self):
         self.destination_account_id = False
         for payment in self:
-            if payment.invoice_ids:
-                payment.destination_account_id = payment.invoice_ids[0].mapped(
+            if payment.reconciled_invoice_ids:
+                payment.destination_account_id = payment.reconciled_invoice_ids[0].mapped(
                     'line_ids.account_id').filtered(
                     lambda account: account.user_type_id.type in ('receivable', 'payable'))[0]
             elif payment.payment_type == 'transfer':

@@ -24,7 +24,7 @@ class ReportIncomeWithholding(models.TransientModel):
         end_date = '{}-{}-{}'.format(year, month, last_day)
 
         invoice_ids = self.env['account.move'].search([
-            ('invoice_payment_state', '=', 'paid'),
+            ('payment_state', '=', 'paid'),
 
             ('payment_date', '>=', start_date),
             ('payment_date', '<=', end_date),
