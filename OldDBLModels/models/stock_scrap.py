@@ -4,7 +4,6 @@ from odoo import models, fields
 class StockScrap(models.Model):
     _inherit = "stock.scrap"
 
-    # Add your custom fields or methods here
     scrap_reason = fields.Selection(
         [
             ("Daño por Equipo defectuoso", "Daño por Equipo defectuoso"),
