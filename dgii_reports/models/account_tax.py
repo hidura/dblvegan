@@ -7,14 +7,14 @@ class AccountTax(models.Model):
 
     @api.model
     def _get_isr_retention_type(self):
-        return [('01', 'Alquileres'),
-                ('02', 'Honorarios por Servicios'),
-                ('03', 'Otras Rentas'),
-                ('04', 'Rentas Presuntas'),
-                ('05', u'Intereses Pagados a Personas Jurídicas'),
-                ('06', u'Intereses Pagados a Personas Físicas'),
-                ('07', u'Retención por Proveedores del Estado'),
-                ('08', u'Juegos Telefónicos')]
+        return [('01', '01 - Alquileres'),
+                ('02', '02 - Honorarios por Servicios'),
+                ('03', '03 - Otras Rentas'),
+                ('04', '04 - Rentas Presuntas'),
+                ('05', '05 - Intereses Pagados a Personas Jurídicas'),
+                ('06', '06 - Intereses Pagados a Personas Físicas'),
+                ('07', '07 - Retención por Proveedores del Estado'),
+                ('08', '08 - Juegos Telefónicos')]
 
     purchase_tax_type = fields.Selection(
         [('itbis', 'ITBIS Pagado'),

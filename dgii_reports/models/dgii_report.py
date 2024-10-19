@@ -340,8 +340,12 @@ class DgiiReport(models.Model):
             ('payment_date', '<=', start_date),
             ('company_id', '=', self.company_id.id),
             ('move_type', 'in', types),
-        ]).filtered(lambda inv: self.get_date_tuple(inv.payment_date) ==
-                    (period.year, period.month))
+        ]).filtered(
+            lambda inv: self.get_date_tuple(inv.payment_date) == (period.year, period.month)
+            and any([
+                inv.withholded_itbis, inv.income_withholding, inv.third_withheld_itbis, inv.third_income_withholding
+            ])
+        )
 
         return invoice_ids
 
@@ -1285,7 +1289,10 @@ class DgiiReportPurchaseLine(models.Model):
 
     rnc_cedula = fields.Char(size=11)
     identification_type = fields.Char(size=1)
-    expense_type = fields.Char(size=2)
+    expense_type = fields.Selection(
+        selection=lambda self: self.env["res.partner"]._get_l10n_do_expense_type() or False,
+    )
+
     fiscal_invoice_number = fields.Char(size=19)
     modified_invoice_number = fields.Char(size=19)
     invoice_date = fields.Date()
@@ -1299,13 +1306,23 @@ class DgiiReportPurchaseLine(models.Model):
     cost_itbis = fields.Float()
     advance_itbis = fields.Float()
     purchase_perceived_itbis = fields.Float()
-    isr_withholding_type = fields.Char()
+    isr_withholding_type = fields.Selection(
+        selection=lambda self: self.env["account.tax"]._get_isr_retention_type() or False
+    )
     income_withholding = fields.Float()
     purchase_perceived_isr = fields.Float()
     selective_tax = fields.Float()
     other_taxes = fields.Float()
     legal_tip = fields.Float()
-    payment_type = fields.Char()
+    payment_type = fields.Selection([
+        ('01', '01 - Efectivo'),
+        ('02', '02 - Cheque / Transferencia / Depósito'),
+        ('03', '03 - Tarjeta Débito / Crédito'),
+        ('04', '04 - A Crédito'),
+        ('05', '05 - Permuta'),
+        ('06', '06 - Nota de Crédito'),
+        ('07', '07 - Mixto')
+    ])
 
     invoice_partner_id = fields.Many2one('res.partner')
     invoice_id = fields.Many2one('account.move')
@@ -1323,7 +1340,9 @@ class DgiiReportSaleLine(models.Model):
     identification_type = fields.Char(size=1)
     fiscal_invoice_number = fields.Char(size=19)
     modified_invoice_number = fields.Char(size=19)
-    income_type = fields.Char()
+    income_type = fields.Selection(
+        selection=lambda self: self.env["account.move"]._get_l10n_do_income_type() or False
+    )
     invoice_date = fields.Date()
     withholding_date = fields.Date()
     invoiced_amount = fields.Float()
