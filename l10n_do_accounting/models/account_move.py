@@ -104,7 +104,6 @@ class AccountMove(models.Model):
         # compute="_compute_split_sequence",
         store=True
     )
-
     l10n_do_enable_first_sequence = fields.Boolean(
         string="Enable first fiscal sequence",
         compute="_compute_l10n_do_enable_first_sequence",
