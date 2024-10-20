@@ -48,53 +48,9 @@ const HencaFiscalPaymentScreen = (PaymentScreen) => {
                     } = self;
                     let fiscal_position = order.fiscal_position || false
                     let apply_law = fiscal_position && fiscal_position.use_for_delivery === true ? false : true
-
-                    // let otherCurrencyId = false;
-                    // let other_curr_name = '';
-                    // let other_curr_rate = 1;
-                    // if (order.pricelist.currency_id[0] !== self.currency.id) {
-
-                    // const data = await self_own.env.services.rpc({
-                    //     model: 'res.currency',
-                    //     method: 'search_read',
-                    //     domain: [['name', '=', 'USD']],
-                    //     fields: ['name', 'rate'],
-                    //     limit: 1,
-                    // });
-                    // if (data.length > 0) {
-                    //     otherCurrencyId = data[0].id;
-                    //     other_curr_name = data[0].name;
-                    //     other_curr_rate = data[0].rate;
-                    // }
-                    // }
-
-                    // const [{invoice_terms}] = await self_own.env.services.rpc({
-                    //     model: 'res.company',
-                    //     method: 'search_read',
-                    //     domain: [['id', '=', self.company.id]],
-                    //     fields: ['invoice_terms'],
-                    //     limit: 1,
-                    // });
-                    // const cleanTerms = invoice_terms ? invoice_terms.replace(/<[^>]*>/g, '') : '';
-                    // let lineas = [];
-                    // if (cleanTerms.length > 0) {
-                    //     let tempLinea = '';
-                    //
-                    //     for (let i = 0; i < cleanTerms.length; i++) {
-                    //         tempLinea += cleanTerms[i];
-                    //         if (tempLinea.length === 40 || i === cleanTerms.length - 1) {
-                    //             lineas.push(tempLinea);
-                    //             tempLinea = '';
-                    //         }
-                    //     }
-                    // }
                     let ipf_comments = [
                         `${order.name} - ${order.cashier.name}`,
-                        // `${self.currency.id !== otherCurrencyId ? `TOTAL ${other_curr_name} ES: ${other_curr_name}$ ${(order.get_total_with_tax() * other_curr_rate).toFixed(2)}` : ''}`,
-                        // `${self.currency.id !== otherCurrencyId ? `TASA ${other_curr_name}: ${(order.get_total_with_tax() / (order.get_total_with_tax() * other_curr_rate)).toFixed(2)}` : ''}`,
                     ];
-                    // ipf_comments.push(...lineas);
-                    // let lots = [];
                     const ipf_invoice = {
                         type: self_own.get_fiscal_type(order.l10n_do_fiscal_number, order.l10n_do_origin_ncf ?? false),
                         cashier: self.user.id,
@@ -111,7 +67,6 @@ const HencaFiscalPaymentScreen = (PaymentScreen) => {
                                 display_name,
                                 taxes_id
                             },
-                            // pack_lot_lines
                         }) => {
                             // Convert quantity to positive in case is a credit note
                             quantity = Math.abs(quantity);
