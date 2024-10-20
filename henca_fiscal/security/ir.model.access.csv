@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_ipf_printer_config,henca_fiscal_invoicing.access_ipf_printer_config,model_ipf_printer_config,,1,1,1,1
+access_ipf_daily_book,henca_fiscal_invoicing.ipf_daily_book,model_ipf_daily_book,,1,1,1,1
+access_ipf_monthly_book,henca_fiscal_invoicing.ipf_monthly_book,model_ipf_monthly_book,,1,1,1,1

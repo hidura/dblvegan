@@ -1,0 +1,28 @@
+<!-- <?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="henca_fiscal_assets_backend" name="henca_fiscal_assets_backend" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/henca_fiscal/static/src/libs/sweetalert2.js"></script>
+                <script type="text/javascript" src="/henca_fiscal/static/src/libs/bootbox.min.js"></script>
+		        <script type="text/javascript" src="/henca_fiscal/static/src/libs/tingle.min.js"></script>
+                <script type="text/javascript" src="/henca_fiscal/static/src/libs/async.js"></script>
+		        <link rel="stylesheet" href="/henca_fiscal/static/src/libs/tingle.min.css"></link>
+                <script type="text/javascript" src="/henca_fiscal/static/src/js/invoicing.js"></script>
+            </xpath>
+        </template>
+
+
+        <template id="henca_fiscal_point_of_sale_assets_backend" name="henca_fiscal_point_of_sale_assets_backend" inherit_id="point_of_sale.assets">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/henca_fiscal/static/src/libs/sweetalert2.js"></script>
+                <script type="text/javascript" src="/henca_fiscal/static/src/js/chrome.js"></script>
+                <script type="text/javascript" src="/henca_fiscal/static/src/js/models.js"></script>
+                <script type="text/javascript" src="/henca_fiscal/static/src/js/screens.js"></script>
+            </xpath>
+        </template>
+
+
+    </data>
+</odoo> -->
