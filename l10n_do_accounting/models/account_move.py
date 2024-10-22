@@ -97,12 +97,9 @@ class AccountMove(models.Model):
         string="Company in contingency",
         compute="_compute_company_in_contingency",
     )
-    l10n_do_sequence_prefix = fields.Char(
-        # compute="_compute_split_sequence",
-        store=True)
+    l10n_do_sequence_prefix = fields.Char(compute="_compute_split_sequence", store=True)
     l10n_do_sequence_number = fields.Integer(
-        # compute="_compute_split_sequence",
-        store=True
+        compute="_compute_split_sequence", store=True
     )
     l10n_do_enable_first_sequence = fields.Boolean(
         string="Enable first fiscal sequence",
@@ -121,7 +118,7 @@ class AccountMove(models.Model):
     l10n_do_ecf_edi_file_name = fields.Char(
         "ECF XML File Name", copy=False, readonly=True
     )
-    # l10n_latam_manual_document_number = fields.Boolean(store=True)
+    l10n_latam_manual_document_number = fields.Boolean(store=True)
     l10n_do_show_expiration_date_msg = fields.Boolean(
         "Show Expiration Date Message",
         compute="_compute_l10n_do_show_expiration_date_msg",
