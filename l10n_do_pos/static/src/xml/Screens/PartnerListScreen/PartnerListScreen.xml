@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template">
+    <t t-name="PartnerListScreen" t-inherit="point_of_sale.PartnerListScreen" t-inherit-mode="extension" owl="1">
+        <xpath expr="//table[hasclass('partner-list')]/thead/tr/th[hasclass('partner-line-details')]" position="before">
+            <th>Tipo de contribuyente</th>
+        </xpath>
+    </t>
+
+    <t t-name="PartnerLine" t-inherit="point_of_sale.PartnerLine" t-inherit-mode="extension" owl="1">
+        <xpath expr="//td[hasclass('partner-line-balance')]" position="before">
+            <td>
+                <t t-if="props.partner.l10n_do_dgii_tax_payer_type">
+                    <t t-esc="env.pos.payer_types_selection[props.partner.l10n_do_dgii_tax_payer_type]"/>
+                </t>
+            </td>
+        </xpath>
+    </t>
+</templates>

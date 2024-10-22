@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template">
+    <t t-name="TicketScreen" t-inherit="point_of_sale.TicketScreen" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[hasclass('orders')]/t/div[hasclass('header-row')]/div[3]" position="after">
+            <div class="col">NCF</div>
+        </xpath>
+        <xpath expr="//div[hasclass('orders')]/t/t/div[hasclass('order-row')]/div[3]" position="after">
+            <div class="col">
+                <t t-if="order.l10n_do_fiscal_number" t-esc="order.l10n_do_fiscal_number"/>
+            </div>
+        </xpath>
+    </t>
+</templates>
