@@ -594,9 +594,9 @@ export class InterfacesFormController extends FormController {
             "action_invoice_printed",
             [this.props.resId, fiscal_nif],
             {}
-        ).then(() => {
+        ).then(async () => {
             // this.reload();
-            // await this.props.record.model.root.load()
+            await this.props.record.model.root.load()
         });
     }
 
