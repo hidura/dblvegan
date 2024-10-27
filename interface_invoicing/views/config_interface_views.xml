@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit Form View to Modify it -->
+    <record id="view_config_interface_form_inherit" model="ir.ui.view">
+        <field name="name">interface.config.interface.form</field>
+        <field name="model">config.interface</field>
+        <field name="inherit_id" ref="config_interface.view_config_interface_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//group[@name='invoice']" position="inside">   
+            
+            <group colspan="3">
+                    
+                  <field name="invoice_printer_type" required="1" />
+                <field name="invoice_use_legal_tip" />
+                <field name="invoice_mode_restaurant" />
+                <!-- <field name="invoice_automatic_print_after_validation" /> -->
+                <field name="invoice_automatic_payment_after_validation" />
+            
+            </group>
+            
+
+             <group colspan="3">
+                    
+                  <field name="invoice_print_seller" /> 
+                <field name="invoice_print_cashier" /> 
+                <field name="invoice_print_product_barcode" />
+                <field name="invoice_print_product_reference" />
+                <field name="invoice_note_invoice" />     
+            
+            </group>
+              
+              
+                                 
+            </xpath>
+        </field>
+    </record>
+</odoo>
+
