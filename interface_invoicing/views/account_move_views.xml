@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <record id="action_send_invoice" model="ir.actions.client">
+            <field name="name">Send Invoince</field>
+            <field name="tag">interface_invoicing.ui</field>
+        </record>
+
+
+        <record id="II_inherit_view_account_form" model="ir.ui.view">
+            <field name="name">account.move.interface.form</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+
+               <xpath expr="//form" position="attributes">
+                    <attribute name="js_class">fiscal_interface_wizard</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='fiscal_position_id']" position="after">
+                    <field name="fiscal_printed" invisible="1"/>
+                </xpath>
+
+                <div class="oe_button_box" name="button_box">
+                    <button class="oe_stat_button" context='{"itf_type": "invoice"}' name="action_do_nothig" type="object" interface="invoice" icon="fa-print" attrs="{'invisible':['|',('state','in',('draft','cancel')),('fiscal_printed','=',True)] }">Imprimir Fiscal</button>
+                    <button class="oe_reprint_button" context='{"itf_type": "reinvoice"}' name="action_do_nothig" type="object" interface="reinvoice" icon="fa-print"   attrs="{'invisible':[('fiscal_printed','=',False)]}" groups="interface_invoicing.group_reprint_management">Reimprimir Fiscal</button>
+
+                </div>
+
+
+            </field>
+        </record>
+        
+
+
+
+        <record id="II_inherit_view_account_payment_register_form" model="ir.ui.view">
+            <field name="name">account.payment.register.form</field>
+            <field name="model">account.payment.register</field>
+            <field name="inherit_id" ref="account.view_account_payment_register_form" />
+            <field name="arch" type="xml">
+
+                <xpath expr="//form" position="attributes">
+                    <attribute name="js_class">fiscal_interface_wizard</attribute>
+                </xpath>
+                <xpath expr="//field[@name='communication']" position="after">
+                    <field name="source_invoice" invisible="1"/>
+                </xpath>
+
+
+                <xpath expr="//button[@name='action_create_payments']" position="replace">
+                    <button string="Registrar pago" name="action_create_payments"  type="object" class="oe_highlight" data-hotkey="q"/>
+                    <button string='Registrar pago  y imprimir' name="action_create_payments"  context='{"itf_type": "invoice"}' type="object" help="Permite agregar otro pago a la factura, 
+                 para los casos que se desear realizar multipago" class="oe_highlight" data-hotkey="a"/>
+                </xpath>
+
+       
+            </field>
+        </record>
+
+
+
+    </data>
+</odoo>

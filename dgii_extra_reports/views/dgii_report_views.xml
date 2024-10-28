@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="dgii_report_form_view_inherit_extra_reports" model="ir.ui.view">
+        <field name="name">dgii.reports.form.view.inherit.extra.reports</field>
+        <field name="model">dgii.reports</field>
+        <field name="inherit_id" ref="dgii_reports.dgii_report_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[@name='it1']" position="after">
+                <page string="IR17" name="ir17" invisible="0">
+                    <group>
+                        <group string="Resumen de otras retenciones" readonly="1">
+                            <field name="ret_rent" readonly="1"/>
+                            <field name="ret_service_honoraries" readonly="1"/>
+                            <field name="ret_award" readonly="1"/>
+                            <field name="ret_title_transfer" readonly="1"/>
+                            <field name="ret_dividends" readonly="1"/>
+                            <field name="ret_legal_person10" readonly="1"/>
+                            <field name="ret_legal_person5" readonly="1"/>
+                            <field name="ret_physical_person10" readonly="1"/>
+                            <field name="ret_physical_person5" readonly="1"/>
+                            <field name="ret_remittances" readonly="1"/>
+                            <field name="ret_special_remittances" readonly="1"/>
+                            <field name="ret_local_supplier" readonly="1"/>
+                            <field name="ret_phone_set" readonly="1"/>
+                            <field name="ret_capital_earning" readonly="1"/>
+                            <field name="ret_internet_games" readonly="1"/>
+                            <field name="ret_others_rent10" readonly="1"/>
+                            <field name="ret_others_rent2" readonly="1"/>
+                            <field name="ret_others_ret" readonly="1"/>
+                            <field name="ret_finance_entity_legal" readonly="1"/>
+                            <field name="ret_finance_entity_physical" readonly="1"/>
+                        </group>
+                        <group string="Total">
+                            <field name="ret_total" readonly="1"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

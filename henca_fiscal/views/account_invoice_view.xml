@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="fiscaL_printer_account_move_form" model="ir.ui.view">
+            <field name="name">account.move.form.fiscal.printer</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="attributes">
+                    <attribute name="js_class">interface_wizard</attribute>
+                </xpath>
+
+
+                <xpath expr="//button[@name='action_invoice_sent']" position="attributes">
+                    <attribute name="string">Imprimir PDF</attribute>
+                </xpath>
+
+                <xpath expr="//button[@name='action_post']" position="after">
+                    <button id="fiscal_print" context='{"itf_type": "fiscal_print"}' custom="fiscal_print" js_class="interface_wizard" name="ipf_fiscal_print" string="Imprimir Fiscal" type="object" class="btn-primary" attrs="{'invisible': ['|','|',('fiscal_printed','=',True),('show_print_fiscal','=',False),('state','in',('draft','cancel'))]}"/>
+                    <button id="fiscal_copy" context='{"itf_type": "fiscal_copy"}' custom="fiscal_copy" name="ipf_fiscal_copy" string="Imprimir Copia Fiscal" type="object" class="btn-primary"/>
+                </xpath>
+
+               <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='price_unit']" position="after">
+                   <field name="tax_amount"  invisible="1" force_save="1"/>
+                   <field name="invoice_date_currency_rate" invisible="1"/>
+               </xpath>
+
+                <field name="invoice_origin" position="after">
+                    <field name="fiscal_nif" t-ref="fiscal_nif" attrs="{'invisible': [('fiscal_nif','=','false')]}"/>
+                    <field name="partner_vat"  t-ref="partner_vat" />
+                    <field name="ipf_printer_id" t-ref="ipf_printer_id" />
+                    <field name="invoice_date_currency_rate" t-ref="invoice_date_currency_rate" />
+                    <field name="dop_currency_id"  t-ref="dop_currency_id" />
+                    <field name="ipf_host"  t-ref="ipf_host" invisible="1" />
+                    <field name="ipf_print_copy_number"  t-ref="ipf_print_copy_number" invisible="1" />
+                    <field name="ipf_type"  t-ref="ipf_type" invisible="1" />
+                    <field name="print_manual_copy"  t-ref="print_manual_copy" invisible="1" />
+                    <field name="fiscal_printed"  t-ref="fiscal_printed" invisible="1" />
+                    <field name="show_print_fiscal"  t-ref="show_print_fiscal" invisible="1" />
+                </field>
+            </field>
+        </record>
+
+    </data>
+</odoo>

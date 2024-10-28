@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+
+    <t t-name="InterfaceBillButton" owl="1">
+        <div class="control-button interface-order-printbill">
+            <i class="fa fa-file-text" />
+            <span> </span>
+            <span>Precuenta</span>
+        </div>
+    </t>
+
+
+    <t t-name="PrinterFiscalOption" owl="1">
+        <div class="control-button interface_menu_fiscal">
+            <i class="fa fa-file-text " />
+            <span> </span>
+            <span>Impresora</span>
+        </div>
+    </t>
+
+
+
+</template>

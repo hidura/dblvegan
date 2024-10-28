@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="ipf_manager_inherit_pos_config_form" model="ir.ui.view">
+            <field name="name">ipf.manager.pos.config.form</field>
+            <field name="model">pos.config</field>
+            <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@id='other_devices']" position="after">
+                    <div class="col-12 col-lg-6 o_setting_box" id="fiscal_devices">
+                        <label string="Interface Impresora Fiscal" for="iface_fiscal_printer" class="col-md-3 o_light_label"/>
+                        <field name="iface_fiscal_printer" />
+                    </div>
+
+                    <div class="col-12 col-lg-6 o_setting_box" id="other_fiscal_devices">
+                        <div class="o_setting_left_pane">
+                            <field name="iface_fiscal_print_order_bill" />
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label string="Impresión de cuenta por IPF" for="iface_fiscal_print_order_bill" class="col-md-3 o_light_label"/>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="henca_fiscal_inherit_view_account_position_form" model="ir.ui.view">
+            <field name="name">account.fiscal.position.interface_pos</field>
+            <field name="model">account.fiscal.position</field>
+            <field name="inherit_id" ref="account.view_account_position_form" />
+            <field name="arch" type="xml">
+                <field name="auto_apply" position="after">
+                    <field name="use_for_delivery"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</odoo>

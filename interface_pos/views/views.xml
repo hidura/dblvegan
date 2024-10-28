@@ -1,0 +1,43 @@
+<odoo>
+<record id="l10n_interfaz_pos_pos_config_view_form" model="ir.ui.view">
+        <field name="name">l10n.interfaz.pos.config.view.form</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+        <field name="arch" type="xml">
+
+                <xpath expr="//div[@id='other_devices']" position="after">
+                    <div class="col-12 col-lg-6 o_setting_box" id="neotec_fiscal_devices">
+                        <div class="o_setting_left_pane">
+                           
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label string="Interfaz" for="config_interface_id" class="col-md-6 o_light_label"/>
+                            <field name="config_interface_id" />
+                        </div>
+                    </div>
+                </xpath>
+
+
+          
+        </field>
+    </record>
+
+
+    <record id="interfaz_pos_view_pos_payment_method_form" model="ir.ui.view">
+        <field name="name">interfaz_fiscal.pos.view.pos.payment.method.form</field>
+        <field name="model">pos.payment.method</field>
+        <field name="inherit_id" ref="point_of_sale.pos_payment_method_view_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='journal_id']" position="after">
+                <field name="payment_form" string="Metodo de Pago Impresora"/>
+            </xpath>
+
+        </field>
+    </record>
+
+
+
+
+   
+</odoo>

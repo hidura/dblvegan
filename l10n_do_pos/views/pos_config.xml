@@ -1,0 +1,36 @@
+<odoo>
+    <record id="pos_config_view_form_inherit" model="ir.ui.view">
+        <field name="name">pos_config_view_form_inherit</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='other_devices']" position="after">
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                        <field name="only_invoice"/>
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <span class="o_form_label">Solo Facturacion</span>
+                        <div class="text-muted">
+                            Forza a crear facturas al confirmar el pedido,
+                            considere deshabilitar esta opcion en cualquier otro caso.
+                        </div>
+                        <div class="content-group mt16" attrs="{'invisible': [('only_invoice', '=', False)]}">
+							<div class="row mt16">
+								<label string="Cliente de consumo" for="default_partner_id" class="col-lg-3 o_light_label"/>
+								<field name="default_partner_id"/>
+							</div>
+						</div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="content-group mt16">
+                        <label string="Imprimir PDF" for="print_pdf" class="col-md-3 o_light_label"/>
+                        <field name="print_pdf" widget="boolean_toggle"/>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

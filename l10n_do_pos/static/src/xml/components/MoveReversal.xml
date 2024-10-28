@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="MoveReversal" name="Pos MoveReversal" owl="1">
+        <div>
+            <label>Modification code</label>
+            <select id="l10n_do_ecf_modification_code" t-model="state.modification_code" t-on-change="pillClicked">
+                <option value="1">01 - Total Cancellation</option>
+            </select>
+        </div>
+    </t>
+</templates>
