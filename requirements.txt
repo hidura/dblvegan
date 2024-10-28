@@ -1,0 +1,4 @@
+pycountry
+python-stdnum
+xlsxwriter
+numpy-financial
