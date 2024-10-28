@@ -164,18 +164,19 @@ class AccountMove(models.Model):
     def _compute_payments_widget_reconciled_info(self):
         payment_vals = super(AccountMove, self)._compute_payments_widget_reconciled_info()
         payment_vals = []
-        if self.invoice_payments_widget and self.move_type in ['out_invoice', 'out_refund']:
-            for payment in self.invoice_payments_widget['content']:
-                if payment['account_payment_id']:
-                    payment_id = self.env['account.payment'].browse(payment['account_payment_id'])
-                    payment_form = payment_id.journal_id.l10n_do_payment_form
-                    journal_name = payment_id.journal_id.name
-                    payment['interfaz_payment_form'] = payment_form or False
-                    payment['interfaz_payment_description'] = journal_name
-                elif payment['move_id']:
-                    move_id = self.env['account.move'].browse(payment['move_id'])
-                    ref = move_id.l10n_latam_document_number
-                    payment_form = 'credit_note' if 'B04' in ref else 'other'
-                    payment['interfaz_payment_form'] = payment_form or False
-                    payment['interfaz_payment_description'] = ref
+        for move in self:
+            if move.invoice_payments_widget and move.move_type in ['out_invoice', 'out_refund']:
+                for payment in move.invoice_payments_widget['content']:
+                    if payment['account_payment_id']:
+                        payment_id = self.env['account.payment'].browse(payment['account_payment_id'])
+                        payment_form = payment_id.journal_id.l10n_do_payment_form
+                        journal_name = payment_id.journal_id.name
+                        payment['interfaz_payment_form'] = payment_form or False
+                        payment['interfaz_payment_description'] = journal_name
+                    elif payment['move_id']:
+                        move_id = self.env['account.move'].browse(payment['move_id'])
+                        ref = move_id.l10n_latam_document_number
+                        payment_form = 'credit_note' if 'B04' in ref else 'other'
+                        payment['interfaz_payment_form'] = payment_form or False
+                        payment['interfaz_payment_description'] = ref
         return payment_vals
