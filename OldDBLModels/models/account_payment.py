@@ -70,7 +70,9 @@ class AccountPayment(models.Model):
                 # else:
                 #     partner_type = 'supplier'
 
-                liquidity_amount = liquidity_lines.amount_currency
+                liquidity_lines = liquidity_lines and liquidity_lines[0]
+
+                liquidity_amount = liquidity_lines and liquidity_lines.amount_currency
 
                 move_vals_to_write.update({
                     'currency_id': liquidity_lines.currency_id.id,
