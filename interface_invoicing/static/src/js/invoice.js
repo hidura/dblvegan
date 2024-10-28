@@ -44,7 +44,7 @@ export class InterfacesNeotecFormController extends FormController {
       const itf_type = context.itf_type;
       if (itf_type === "invoice") {
         // Imprimir Factura
-        this.sendInvoice(this.model.root.data.id, false);
+        this.sendInvoice(this.model.root.data.id, true);
       } else if (itf_type === "reinvoice") {
         // ReImprimir Factura
         this.sendInvoice(this.model.root.data.id, true);
