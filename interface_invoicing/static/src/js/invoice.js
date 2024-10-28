@@ -42,7 +42,6 @@ export class InterfacesNeotecFormController extends FormController {
     try {
       let context = JSON.parse(clickParams.context);
       const itf_type = context.itf_type;
-      debugger;
       if (itf_type === "invoice") {
         // Imprimir Factura
         this.sendInvoice(this.model.root.data.id, false);
