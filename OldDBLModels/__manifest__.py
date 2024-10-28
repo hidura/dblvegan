@@ -2,7 +2,7 @@
 
 {
     'name': 'OldDBLVeganSer',
-    'version': '16.0.5',
+    'version': '16.0.6',
     'summary': 'DBL Vegan customizations',
     'sequence': 265,
     'category': "Stock",
