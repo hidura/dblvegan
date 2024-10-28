@@ -683,9 +683,11 @@ standard_format = (function () {
             preorder.push(" % LEY" + info.ley_order.toFixed(2).toString().padStart(pv - 7, " "));
         }
 
-        // if (iconfig.printer_type == "bixolon") {
+        if (iconfig.printer_type == "bixolon") {
             preorder.push("$TOTAL" + info.total_order.padStart(pv - 55, " "));
-        // }
+        } else {
+            preorder.push("TOTAL" + info.total_order.padStart(pv - 10, " "));
+        }
         preorder.push("");
         preorder.push(" NUMERO DE ORDER: " + info.number_order);
 
