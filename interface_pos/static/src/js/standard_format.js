@@ -661,6 +661,8 @@ standard_format = (function() {
 
         if (iconfig.printer_type == "bixolon") {
             preorder.push("$TOTAL" + info.total_order.padStart(pv - 55, " "));
+        } else {
+            preorder.push(" TOTAL" + info.total_order.padStart(pv - 10, " "));
         }
         preorder.push("");
         preorder.push(" NUMERO DE ORDER: " + info.number_order);
