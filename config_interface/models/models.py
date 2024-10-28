@@ -25,6 +25,6 @@ class ConfigInterface(models.Model):
         res = {}
         config_id = self.browse(
             config_interface_id) if config_interface_id else self
-        for key, value in config_id.read()[0]:
+        for key, value in config_id.read()[0].items():
             res[key] = value
         return res
