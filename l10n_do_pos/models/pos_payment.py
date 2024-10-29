@@ -50,8 +50,6 @@ class PosPayment(models.Model):
             result |= account_payment.move_id
 
         pos_payment_cash = self.filtered(lambda p: p.payment_method_id.is_cash_count and not p.payment_method_id.use_credit_note)
-        print('pos_payment_cash', pos_payment_cash)
-        print('pos_payment_cash amount', pos_payment_cash.mapped('amount'))
 
         if pos_payment_cash:
             cash_payment_values = self._get_payment_values(pos_payment_cash)
