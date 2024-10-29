@@ -3,6 +3,8 @@ from odoo.exceptions import UserError
 import logging
 _logger = logging.getLogger(__name__)
 
+# THIS FILE IS NOT BEING IMPORTED
+
 
 class AccountPayment(models.Model):
     _inherit = 'account.payment'
