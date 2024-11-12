@@ -1,8 +1,10 @@
-from odoo import models, fields, api, _
+from odoo import api, fields, models, _
+from odoo.tools import float_is_zero
+from odoo.exceptions import ValidationError
 
 
 class PosPayment(models.Model):
-    _inherit = "pos.payment"
+    _inherit = 'pos.payment'
 
     def _get_payment_values(self, payment):
         amount = sum(payment.mapped('amount')) if len(payment) > 1 else payment.amount
@@ -28,11 +30,11 @@ class PosPayment(models.Model):
             return super(PosPayment, self)._create_payment_moves(is_reverse)
 
         result = self.env['account.move']
-        for payment in self.filtered(lambda p: not p.payment_method_id.use_credit_note and p.amount > 0):
+        for payment in self.filtered(lambda p: not p.payment_method_id.is_cash_count and not p.payment_method_id.use_credit_note):
             order = payment.pos_order_id
             payment_method = payment.payment_method_id
 
-            if payment_method.type == 'pay_later' or order.currency_id.is_zero(payment.amount):
+            if payment_method.type == 'pay_later' or float_is_zero(payment.amount, precision_rounding=order.currency_id.rounding):
                 continue
 
             account_payment = self.env['account.payment'].create(
@@ -47,13 +49,31 @@ class PosPayment(models.Model):
             })
             result |= account_payment.move_id
 
+        pos_payment_cash = self.filtered(lambda p: p.payment_method_id.is_cash_count and not p.payment_method_id.use_credit_note)
+
+        if pos_payment_cash:
+            cash_payment_values = self._get_payment_values(pos_payment_cash)
+            if cash_payment_values['amount'] > 0:
+                account_payment_cash = self.env['account.payment'].create(
+                    self._get_payment_values(pos_payment_cash)
+                )
+                account_payment_cash.action_post()
+                account_payment_cash.move_id.write({
+                    'pos_payment_ids': pos_payment_cash.ids,
+                })
+                pos_payment_cash.write({
+                    'account_move_id': account_payment_cash.move_id.id
+                })
+                result |= account_payment_cash.move_id
+
         for credit_note in self.filtered(lambda p: p.payment_method_id.use_credit_note and p.name):
             account_move_credit_note = self.env['account.move'].search([
-                ('partner_id', '=', credit_note.partner_id.id),
-                ('l10n_do_fiscal_number', '=', credit_note.name),
-                ('move_type', '=', 'out_refund'),
-                ('company_id', '=', self.env.company.id),
-                ('state', '=', 'posted')
+                    ('partner_id', '=', credit_note.partner_id.id),
+                    ('ref', '=', credit_note.name),
+                    ('move_type', '=', 'out_refund'),
+                    ('journal_id.l10n_latam_use_documents', '=', True),
+                    ('company_id', '=', self.env.company.id),
+                    ('state', '=', 'posted')
                 ], limit=1
             )
 
@@ -65,33 +85,5 @@ class PosPayment(models.Model):
                     'account_move_id': account_move_credit_note.id
                 })
                 result |= account_move_credit_note
+
         return result
-
-
-    # def _create_payment_moves(self):
-    #     """
-    #     Interviene la creacion del asiento contable para verificar si el metodo de pago usado es tipo Nota de Credito,
-    #     de serlo se usa dicha NC como metodo de pago.
-    #     :return: account.move
-    #     """
-    #     moves = self.env['account.move']
-    #     records = self
-    #     for payment in self:
-    #         order = payment.pos_order_id
-    #         payment_method = payment.payment_method_id
-    #         if payment_method.type == 'credit_note':
-    #             info = order.credit_note_info_from_ui(payment.note)
-    #             credit_note_id = self.env[info['model']].browse(info['id'])
-    #             payment.write({'res_model': info['model']})
-    #             moves |= credit_note_id.account_move if credit_note_id._name == 'pos.order' else credit_note_id
-    #             records -= payment
-    #         if payment_method.type == 'credit_note':
-    #             info = order.credit_note_info_from_ui(payment.note)
-    #             credit_note_id = self.env[info['model']].browse(info['id'])
-    #             payment.write({'res_model': info['model']})
-    #             moves |= credit_note_id.account_move if credit_note_id._name == 'pos.order' else credit_note_id
-    #             records -= payment
-    #
-    #     rstl = super(PosPayment, records)._create_payment_moves()
-    #     rstl |= moves
-    #     return rstl
