@@ -14,8 +14,9 @@ class AccountMoveLine(models.Model):
         other_taxes_amount = sum(
             abs(self.currency_id.round(line.amount_currency)) for line in other_taxes_lines
         )
-        rate = round(self.move_id.amount_total_signed / self.move_id.amount_total, 2)
         res["l10n_do_invoice_total"] += other_taxes_amount
-        res["l10n_do_invoice_total_currency"] += other_taxes_amount * rate
+        if self.currency_id != self.company_id.currency_id:
+            rate = round(self.move_id.amount_total_signed / self.move_id.amount_total, 2)
+            res["l10n_do_invoice_total_currency"] += other_taxes_amount * rate
 
         return res
