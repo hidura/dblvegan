@@ -68,7 +68,7 @@ class AccountMove(models.Model):
         sequence = self._get_l10n_do_sequence()
         return sequence.l10n_do_max_number
 
-    def action_post(self):
+    def _post(self, soft=True):
         for rec in self:
             # Here we assign the next fiscal sequence before l10n_do_accounting, so
             # when the code goes through the l10n_do_accounting, the sequence assignment logic is not executed
@@ -77,7 +77,7 @@ class AccountMove(models.Model):
                 rec.l10n_do_fiscal_number = rec._get_next_fiscal_sequence()
                 rec._compute_split_sequence()
                 rec._update_next_sequence()
-        res = super().action_post()
+        res = super()._post(soft=soft)
         return res
 
     # Override to always get the sequence from journal
